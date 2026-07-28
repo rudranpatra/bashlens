@@ -1,0 +1,7 @@
+id: xxd-reverse
+class: obfuscation
+severity: high
+description: Uses xxd -r to reverse a hex dump back into binary/text
+kind: command_with_flag
+command: [xxd]
+flags: ["-r"]

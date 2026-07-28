@@ -1,7 +1,6 @@
-id: network
+id: network-fetch
 class: network
 severity: medium
 description: Performs an outbound HTTP(S) request
-regex:
-  - "\\b(curl|wget)\\b"
-  - "https?://[^\\s<>]+"
+kind: simple_command
+match_values: [curl, wget]

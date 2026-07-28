@@ -4,4 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-regex = "1.10"
+tree-sitter = "0.26"
+tree-sitter-bash = "0.25"
+anyhow = "1.0"

@@ -1,0 +1,6 @@
+id: systemd-service
+class: persistence
+severity: medium
+description: Installs or enables a systemd service
+kind: simple_command
+match_values: [systemctl]

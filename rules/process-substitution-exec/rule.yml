@@ -1,0 +1,7 @@
+id: process-substitution-exec
+class: obfuscation
+severity: high
+description: Executes a shell over a process-substituted network fetch
+kind: process_substitution_exec
+shell_commands: [sh, bash, zsh, dash]
+fetch_commands: [curl, wget]

@@ -1,0 +1,6 @@
+id: profile-mention
+class: persistence
+severity: low
+description: References a shell profile/startup file path (may write to it indirectly via a variable, not always a direct redirect)
+kind: text_contains
+match_substrings: [".bashrc", ".bash_profile", ".bash_login", ".zshrc", ".zprofile", ".profile", "profile.d", ".config/fish"]

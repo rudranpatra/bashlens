@@ -2,5 +2,5 @@ id: sudo
 class: privilege
 severity: medium
 description: Uses sudo to escalate privileges
-regex:
-  - "\\bsudo\\b"
+kind: simple_command
+match_values: [sudo]

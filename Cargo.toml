@@ -7,4 +7,4 @@ default-members = ["crates/cli"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/<your-org>/bashlens"
+repository = "https://github.com/rudranpatra/bashlens"

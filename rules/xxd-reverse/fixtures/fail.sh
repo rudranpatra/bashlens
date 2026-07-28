@@ -1,0 +1,1 @@
+xxd -p file.bin

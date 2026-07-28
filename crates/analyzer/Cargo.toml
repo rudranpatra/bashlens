@@ -6,8 +6,9 @@ edition.workspace = true
 [dependencies]
 bashlens-rules = { path = "../rules" }
 bashlens-report = { path = "../report" }
+bashlens-parser = { path = "../parser" }
 serde = { version = "1.0", features = ["derive"] }
-regex = "1.10"
+serde_json = "1.0"
 sha2 = "0.10"
 hex = "0.4"
 anyhow = "1.0"

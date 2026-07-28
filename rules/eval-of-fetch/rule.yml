@@ -1,0 +1,7 @@
+id: eval-of-fetch
+class: obfuscation
+severity: high
+description: Evaluates the output of a network fetch
+kind: eval_of_fetch
+eval_commands: [eval]
+fetch_commands: [curl, wget]

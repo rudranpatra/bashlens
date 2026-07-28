@@ -1,0 +1,1 @@
+eval "$SOME_COMMAND"

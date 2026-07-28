@@ -1,0 +1,6 @@
+id: eval-exec
+class: obfuscation
+severity: high
+description: Uses eval to execute dynamically constructed code
+kind: simple_command
+match_values: [eval]

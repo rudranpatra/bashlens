@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use bashlens_report::{BehaviorClass, ClassRisk, Finding, Report, RiskSummary, Severity};
 use bashlens_rules::RuleSet;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 
@@ -21,6 +22,20 @@ pub struct CorpusBaseline {
     per_class: std::collections::HashMap<BehaviorClass, Vec<f64>>,
 }
 
+/// On-disk form of a `CorpusBaseline`. A flat struct with one field per risk
+/// class rather than a generic map, since `BehaviorClass` isn't a valid JSON
+/// map key (serde_json requires string keys) and there are only ever the 4
+/// fixed `RISK_CLASSES` to store.
+#[derive(Serialize, Deserialize)]
+struct BaselineFile {
+    size: usize,
+    overall: Vec<f64>,
+    network: Vec<f64>,
+    privilege: Vec<f64>,
+    persistence: Vec<f64>,
+    obfuscation: Vec<f64>,
+}
+
 impl CorpusBaseline {
     pub fn len(&self) -> usize {
         self.size
@@ -28,6 +43,77 @@ impl CorpusBaseline {
 
     pub fn is_empty(&self) -> bool {
         self.size == 0
+    }
+
+    /// Loads a previously cached baseline (see `save`). Rebuilding it from
+    /// scratch means re-parsing every corpus script with tree-sitter on
+    /// every single invocation, which is the difference between a ~10ms and
+    /// a ~3s CLI run at 174 scripts - this cache is what keeps `bashlens`
+    /// fast day-to-day. Regenerate it (via `--update-baseline`) after any
+    /// change to `corpus/scripts/` or `rules/`.
+    pub fn load<P: AsRef<std::path::Path>>(path: P) -> Result<Self> {
+        let data = std::fs::read_to_string(path.as_ref())
+            .with_context(|| format!("failed to read baseline cache {:?}", path.as_ref()))?;
+        Self::from_json(&data)
+    }
+
+    /// The baseline snapshot embedded into the binary at compile time
+    /// (`corpus/stats/baseline.json` as of the last build) - what a
+    /// distributed binary falls back to when no local cache or corpus
+    /// checkout is present. Necessarily a point-in-time snapshot: it only
+    /// updates when the binary itself is rebuilt and redistributed.
+    pub fn embedded() -> Result<Self> {
+        const EMBEDDED_BASELINE: &str = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../corpus/stats/baseline.json"
+        ));
+        Self::from_json(EMBEDDED_BASELINE)
+    }
+
+    fn from_json(data: &str) -> Result<Self> {
+        let file: BaselineFile =
+            serde_json::from_str(data).context("failed to parse baseline cache")?;
+        let mut per_class = std::collections::HashMap::new();
+        per_class.insert(BehaviorClass::Network, file.network);
+        per_class.insert(BehaviorClass::Privilege, file.privilege);
+        per_class.insert(BehaviorClass::Persistence, file.persistence);
+        per_class.insert(BehaviorClass::Obfuscation, file.obfuscation);
+        Ok(Self {
+            size: file.size,
+            overall: file.overall,
+            per_class,
+        })
+    }
+
+    pub fn save<P: AsRef<std::path::Path>>(&self, path: P) -> Result<()> {
+        let empty = Vec::new();
+        let file = BaselineFile {
+            size: self.size,
+            overall: self.overall.clone(),
+            network: self
+                .per_class
+                .get(&BehaviorClass::Network)
+                .unwrap_or(&empty)
+                .clone(),
+            privilege: self
+                .per_class
+                .get(&BehaviorClass::Privilege)
+                .unwrap_or(&empty)
+                .clone(),
+            persistence: self
+                .per_class
+                .get(&BehaviorClass::Persistence)
+                .unwrap_or(&empty)
+                .clone(),
+            obfuscation: self
+                .per_class
+                .get(&BehaviorClass::Obfuscation)
+                .unwrap_or(&empty)
+                .clone(),
+        };
+        let data = serde_json::to_string_pretty(&file)?;
+        std::fs::write(path.as_ref(), data)
+            .with_context(|| format!("failed to write baseline cache {:?}", path.as_ref()))
     }
 }
 
@@ -44,16 +130,31 @@ impl Analyzer {
         })
     }
 
+    /// Rules baked into the binary at compile time - what a distributed
+    /// binary should use, since it can't assume a `rules/` checkout exists
+    /// next to it.
+    pub fn embedded() -> Result<Self> {
+        Ok(Self {
+            rules: RuleSet::embedded().context("failed to load embedded rules")?,
+        })
+    }
+
     pub fn analyze(&self, name: &str, script: &str) -> Result<Report> {
+        let tree = bashlens_parser::parse(script).context("failed to parse script")?;
         let mut findings = Vec::new();
 
         for rule in self.rules.iter() {
-            if rule.applies(script) {
+            let mut evidence = rule.evaluate(&tree, script);
+            if !evidence.is_empty() {
+                // Cap for readability - a rule that fires dozens of times
+                // (e.g. many URLs in a long installer) shouldn't drown the
+                // report; the count is still implied by the finding existing.
+                evidence.truncate(6);
                 findings.push(Finding {
                     class: class_from_str(&rule.class),
                     severity: severity_from_str(&rule.severity),
                     description: rule.description.clone(),
-                    evidence: rule.evidence(script),
+                    evidence,
                 });
             }
         }
@@ -65,6 +166,16 @@ impl Analyzer {
             .into_iter()
             .collect();
 
+        // Mirrored from findings rather than tracked separately, so
+        // "unresolvable" constructs (dynamic URLs/targets tree-sitter can
+        // structurally locate but not resolve to a literal) are reported
+        // explicitly instead of silently dropped - see rules/dynamic-target.
+        let unresolvable: Vec<String> = findings
+            .iter()
+            .filter(|f| f.class == BehaviorClass::Unresolvable)
+            .flat_map(|f| f.evidence.clone())
+            .collect();
+
         let digest = hex::encode(Sha256::digest(script.as_bytes()));
 
         Ok(Report {
@@ -72,7 +183,7 @@ impl Analyzer {
             sha256: digest,
             classes,
             findings,
-            unresolvable: Vec::new(),
+            unresolvable,
             risk: None,
         })
     }

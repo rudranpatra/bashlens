@@ -1,0 +1,7 @@
+id: pipe-to-shell
+class: obfuscation
+severity: high
+description: Pipes a network fetch directly into a shell
+kind: pipeline_to_shell
+fetch_commands: [curl, wget]
+shell_commands: [sh, bash, zsh, dash]

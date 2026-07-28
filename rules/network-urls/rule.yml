@@ -1,0 +1,5 @@
+id: network-urls
+class: network
+severity: medium
+description: References an HTTP(S) URL
+kind: url_extraction

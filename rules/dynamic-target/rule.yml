@@ -1,0 +1,6 @@
+id: dynamic-target
+class: unresolvable
+severity: low
+description: A network command's target is built from a variable or command substitution rather than a literal - cannot be resolved statically
+kind: dynamic_argument
+target_commands: [curl, wget]

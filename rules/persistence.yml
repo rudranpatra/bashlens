@@ -1,8 +1,0 @@
-id: persistence
-class: persistence
-severity: medium
-description: Modifies a shell profile or installs a system/user service
-regex:
-  - "(\\.bashrc|\\.bash_profile|\\.bash_login|\\.zshrc|\\.zprofile|\\.profile|/profile\\.d|\\.config/fish)"
-  - "\\bsystemctl\\b"
-  - "/etc/systemd|/usr/lib/systemd"

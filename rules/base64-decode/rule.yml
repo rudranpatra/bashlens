@@ -1,0 +1,7 @@
+id: base64-decode
+class: obfuscation
+severity: high
+description: Decodes base64 content (a common payload-obfuscation primitive)
+kind: command_with_flag
+command: [base64]
+flags: ["-d", "--decode"]

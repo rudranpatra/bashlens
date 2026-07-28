@@ -1,0 +1,6 @@
+id: profile-write
+class: persistence
+severity: medium
+description: Writes to a shell profile or startup file
+kind: redirect_target
+match_substrings: [".bashrc", ".bash_profile", ".bash_login", ".zshrc", ".zprofile", ".profile", "profile.d", ".config/fish"]

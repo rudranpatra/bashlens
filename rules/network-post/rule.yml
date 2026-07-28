@@ -1,0 +1,7 @@
+id: network-post
+class: network
+severity: medium
+description: Sends data outbound via a POST/upload flag, not just a plain download
+kind: command_with_flag
+command: [curl, wget]
+flags: ["-X", "-d", "--data", "--data-raw", "--data-binary", "-F", "--form"]

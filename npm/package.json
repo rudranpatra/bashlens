@@ -1,0 +1,21 @@
+{
+  "name": "bashlens",
+  "version": "0.1.0",
+  "description": "Inspect shell install scripts before you run them",
+  "bin": {
+    "bashlens": "bin/bashlens.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rudranpatra/bashlens.git"
+  },
+  "homepage": "https://github.com/rudranpatra/bashlens",
+  "bugs": "https://github.com/rudranpatra/bashlens/issues",
+  "license": "MIT",
+  "os": ["linux", "darwin"],
+  "cpu": ["x64", "arm64"],
+  "files": ["bin", "install.js"]
+}
