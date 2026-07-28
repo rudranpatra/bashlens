@@ -30,17 +30,21 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation tools
+      # Linux targets build inside `cross`'s Docker images, which ship a
+      # correct musl toolchain for each arch. A first attempt here used
+      # `gcc-aarch64-linux-gnu` (a glibc cross-gcc) as the linker for the
+      # *musl* target - a real mismatch that failed the first tagged
+      # release build. `cross` avoids re-guessing this by hand.
+      - name: Install cross
         if: contains(matrix.target, 'linux')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-musl" ]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-            echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
-          fi
+        run: cargo install cross --git https://github.com/cross-rs/cross --locked
 
-      - name: Build
+      - name: Build (Linux, via cross)
+        if: contains(matrix.target, 'linux')
+        run: cross build --release --target ${{ matrix.target }} -p bashlens
+
+      - name: Build (macOS, native)
+        if: contains(matrix.target, 'darwin')
         run: cargo build --release --target ${{ matrix.target }} -p bashlens
 
       - name: Package
