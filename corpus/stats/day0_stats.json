@@ -1,0 +1,127 @@
+{
+  "network_without_verification": {
+    "count": 97,
+    "examples": [
+      "rustup",
+      "bun",
+      "deno",
+      "ollama",
+      "homebrew",
+      "starship",
+      "nvm",
+      "volta",
+      "flyctl",
+      "pnpm"
+    ],
+    "percent": 55.7
+  },
+  "patterns": {
+    "base64_decode": 4,
+    "checksum": 45,
+    "eval": 30,
+    "network": 164,
+    "piped_to_shell": 43,
+    "profile": 46,
+    "python_exec": 0,
+    "signature": 32,
+    "sudo": 66,
+    "systemd": 17,
+    "xxd": 0
+  },
+  "percentages": {
+    "base64_decode": 2.3,
+    "checksum": 25.9,
+    "eval": 17.2,
+    "network": 94.3,
+    "piped_to_shell": 24.7,
+    "profile": 26.4,
+    "python_exec": 0.0,
+    "signature": 18.4,
+    "sudo": 37.9,
+    "systemd": 9.8,
+    "xxd": 0.0
+  },
+  "top_domains": [
+    [
+      "github.com",
+      457
+    ],
+    [
+      "raw.githubusercontent.com",
+      39
+    ],
+    [
+      "www.apache.org",
+      36
+    ],
+    [
+      "api.github.com",
+      34
+    ],
+    [
+      "packagecloud.io",
+      17
+    ],
+    [
+      "stackoverflow.com",
+      14
+    ],
+    [
+      "pkgs.tailscale.com",
+      13
+    ],
+    [
+      "docs.docker.com",
+      12
+    ],
+    [
+      "getmic.ro",
+      10
+    ],
+    [
+      "unlicense.org",
+      10
+    ],
+    [
+      "gist.github.com",
+      9
+    ],
+    [
+      "download.docker.com",
+      7
+    ],
+    [
+      "docs.nvidia.com",
+      7
+    ],
+    [
+      "docs.brew.sh",
+      7
+    ],
+    [
+      "pkgs.netbird.io",
+      7
+    ],
+    [
+      "git.io",
+      7
+    ],
+    [
+      "support.apple.com",
+      6
+    ],
+    [
+      "discord.gg",
+      6
+    ],
+    [
+      "releases.astral.sh",
+      6
+    ],
+    [
+      "get.docker.com",
+      6
+    ]
+  ],
+  "total_scripts": 174
+}

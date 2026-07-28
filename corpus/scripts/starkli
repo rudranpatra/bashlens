@@ -1,0 +1,156 @@
+#!/bin/sh
+
+set -e
+
+# Fancy color setup:
+#   https://unix.stackexchange.com/questions/9957/how-to-check-if-bash-can-print-colors
+if test -t 1; then
+    ncolors=$(tput colors)
+    if test -n "$ncolors" && test $ncolors -ge 8; then
+        bold="$(tput bold)"
+        underline="$(tput smul)"
+        standout="$(tput smso)"
+        normal="$(tput sgr0)"
+        black="$(tput setaf 0)"
+        red="$(tput setaf 1)"
+        green="$(tput setaf 2)"
+        yellow="$(tput setaf 3)"
+        blue="$(tput setaf 4)"
+        magenta="$(tput setaf 5)"
+        cyan="$(tput setaf 6)"
+        white="$(tput setaf 7)"
+    fi
+fi
+
+insert_env_line() {
+    if [ -f "$1" ]; then
+        if [ -z "$(cat "$1" | grep "${ENV_LINE}")" ]; then
+            echo "${ENV_LINE}" >> "$1"
+        fi
+    fi
+}
+
+echo "Installing ${yellow}starkliup${normal}..."
+
+BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
+STARKLI_DIR=${STARKLI_DIR-"$BASE_DIR/.starkli"}
+STARKLI_BIN_DIR="$STARKLI_DIR/bin"
+STARKLI_MAN_DIR="$STARKLI_DIR/share/man/man1"
+
+STARKLI_BASH_COMPLETIONS_DIR="$STARKLI_DIR/share/bash-completions"
+STARKLI_FISH_COMPLETIONS_DIR="$STARKLI_DIR/share/fish-completions"
+STARKLI_ZSH_COMPLETIONS_DIR="$STARKLI_DIR/share/zsh-completions"
+
+BIN_URL="https://raw.githubusercontent.com/xJonathanLEI/starkli/master/starkliup/starkliup"
+BIN_PATH="$STARKLI_BIN_DIR/starkliup"
+
+ENV_PATH="$STARKLI_DIR/env"
+ENV_FISH_PATH="$STARKLI_DIR/env-fish"
+
+
+mkdir -p $STARKLI_BIN_DIR
+mkdir -p $STARKLI_MAN_DIR
+mkdir -p $STARKLI_BASH_COMPLETIONS_DIR
+mkdir -p $STARKLI_FISH_COMPLETIONS_DIR
+mkdir -p $STARKLI_ZSH_COMPLETIONS_DIR
+
+curl -# -L $BIN_URL -o $BIN_PATH
+chmod +x $BIN_PATH
+
+# Generates the env file on the fly for shells other than Fish
+cat > $ENV_PATH <<EOF
+#!/bin/sh
+
+# Adds binary directory to PATH
+case ":\${PATH}:" in
+  *:${STARKLI_BIN_DIR}:*)
+    ;;
+  *)
+    export PATH="${STARKLI_BIN_DIR}:\$PATH"
+    ;;
+esac
+
+# Loads completions based on shell
+if [ -n "\$ZSH_NAME" ]; then
+    eval "fpath=(${STARKLI_ZSH_COMPLETIONS_DIR} \$fpath)"
+    autoload -U compinit
+    compinit
+else
+    case \$SHELL in
+        */bash)
+            if [ -f "${STARKLI_BASH_COMPLETIONS_DIR}/starkli" ]; then
+                . ${STARKLI_BASH_COMPLETIONS_DIR}/starkli
+            fi
+            ;;
+    esac
+fi
+EOF
+chmod +x $ENV_PATH
+
+# Generates the env file on the fly for Fish
+cat > $ENV_FISH_PATH <<EOF
+# Adds binary directory to PATH
+if not contains ${STARKLI_BIN_DIR} $PATH
+    fish_add_path ${STARKLI_BIN_DIR}
+end
+
+. $STARKLI_FISH_COMPLETIONS_DIR/starkli
+EOF
+chmod +x $ENV_FISH_PATH
+
+# This detection here is just for showing the help message at the end.
+IS_SUPPORTED_SHELL=""
+IS_FISH_SHELL=""
+if [ -n "$ZSH_NAME" ]; then
+    IS_SUPPORTED_SHELL="1"
+fi    
+if [ -n "$FISH_VERSION" ]; then
+    IS_SUPPORTED_SHELL="1"
+    IS_FISH_SHELL="1"
+fi    
+case $SHELL in
+    */bash)
+        IS_SUPPORTED_SHELL="1"
+        ;;
+    */fish)
+        IS_SUPPORTED_SHELL="1"
+        IS_FISH_SHELL="1"
+        ;;
+    */ash)
+        IS_SUPPORTED_SHELL="1"
+        ;;
+esac
+
+# Shell
+echo
+echo "${cyan}Shell detection variables (for debugging use):${normal}"
+echo "${cyan}- ZSH_NAME = $ZSH_NAME${normal}"
+echo "${cyan}- FISH_VERSION = $FISH_VERSION${normal}"
+echo "${cyan}- SHELL = $SHELL${normal}"
+
+# Inserts this line into whatever shell profile we find, regardless of what the active shell is.
+ENV_LINE=". \"${ENV_PATH}\""
+insert_env_line "$HOME/.profile"
+insert_env_line "$HOME/.bashrc"
+insert_env_line "$HOME/.bash_profile"
+insert_env_line "${ZDOTDIR-"$HOME"}/.zshenv"
+insert_env_line "${ZDOTDIR-"$HOME"}/.zshrc"
+
+ENV_LINE=". \"${ENV_FISH_PATH}\""
+insert_env_line "$HOME/.config/fish/config.fish"
+
+echo
+
+if [ -n "$IS_SUPPORTED_SHELL" ]; then
+    if [ -n "$IS_FISH_SHELL" ]; then
+        # We somehow know for sure it's a Fish shell. Not sure if this can actually happen though.
+        echo "Run '${yellow}. ${ENV_FISH_PATH}${normal}' or start a new terminal session to use starkliup."
+    else
+        # Fish shell is hard to detect and this script is likely run with another shell. So there's
+        # a chance the user still uses Fish.
+        echo "Run '${yellow}. ${ENV_PATH}${normal}' (or '${yellow}. ${ENV_FISH_PATH}${normal}' if you're using Fish) or start a new terminal session to use starkliup."
+    fi
+    echo "Then, simply run ${yellow}starkliup${normal} to install starkli."
+else
+    echo "starkliup: could not detect shell. Add '${yellow}. ${ENV_PATH}${normal}' to your shell profile (or '${yellow}. ${ENV_FISH_PATH}${normal}' if you're using Fish), or manually add '${yellow}${STARKLI_BIN_DIR}${normal}' to your PATH environment variable."
+fi

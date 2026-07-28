@@ -1,0 +1,6 @@
+id: sudo
+class: privilege
+severity: medium
+description: Uses sudo to escalate privileges
+regex:
+  - "\\bsudo\\b"

@@ -1,0 +1,10 @@
+[package]
+name = "bashlens-rules"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+regex = "1.10"
+anyhow = "1.0"

@@ -1,0 +1,13 @@
+[package]
+name = "bashlens-analyzer"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bashlens-rules = { path = "../rules" }
+bashlens-report = { path = "../report" }
+serde = { version = "1.0", features = ["derive"] }
+regex = "1.10"
+sha2 = "0.10"
+hex = "0.4"
+anyhow = "1.0"

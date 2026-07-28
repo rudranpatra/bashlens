@@ -1,0 +1,7 @@
+id: verification
+class: verification
+severity: medium
+description: Verifies a downloaded artifact with a checksum or signature
+regex:
+  - "\\b(sha256sum|shasum|sha512sum|sha1sum|md5sum|cksum)\\b"
+  - "\\b(gpg|gpgv|gpg2|gpgv2|cosign|minisign)\\b"

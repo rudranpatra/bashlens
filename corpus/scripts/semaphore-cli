@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+IFS=$'\n\t'
+
+DIST=$(uname)
+
+case $DIST in
+  Darwin)
+    INSTALL_PATH='/usr/local/bin'
+    ;;
+  Linux)
+    [[ -f /usr/bin/sudo ]] && sudo rm -f /etc/apt/sources.list.d/python_2.7-source.list
+    INSTALL_PATH='/usr/local/bin'
+   ;;
+  *)
+    echo "Unsupported distro $DIST"
+    exit 1
+  ;;
+esac
+
+cat << EOF >> ~/.ssh/config
+Host github.com bitbucket.org
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+EOF
+
+install_cmd() {
+  local cmd=$@
+  if [ `whoami` == 'root' ]; then
+    `$@`
+  else
+    `sudo $@`
+  fi
+}
+log_install_status() {
+  local component=${1:-"toolbox"}
+  echo "toolboxerror,component='${component}' value=1" >> /tmp/toolbox_metrics
+}
+
+install_cmd ln -sf ~/.toolbox/retry $INSTALL_PATH/retry
+install_cmd chmod +x $INSTALL_PATH/retry
+if [[ $? -eq 0 ]];then
+  echo "retry installed"
+else
+  log_install_status 'retry'
+fi
+
+install_cmd ln -sf ~/.toolbox/ssh-session-cli $INSTALL_PATH/semaphore
+install_cmd chmod +x $INSTALL_PATH/semaphore
+if [[ $? -eq 0 ]];then
+  echo "ssh-session-cli installed"
+else
+  log_install_status 'ssh-session-cli'
+fi
+
+install_cmd ln -sf ~/.toolbox/cache $INSTALL_PATH/cache
+install_cmd chmod +x $INSTALL_PATH/cache
+if [[ $? -eq 0 ]];then
+  echo "cache installed"
+else
+  log_install_status 'cache'
+fi
+
+install_cmd ln -sf ~/.toolbox/sem-context $INSTALL_PATH/sem-context
+install_cmd chmod +x $INSTALL_PATH/sem-context
+if [[ $? -eq 0 ]];then
+  echo "sem-context installed"
+else
+  log_install_status 'sem-context'
+fi
+
+install_cmd ln -sf ~/.toolbox/sem-service $INSTALL_PATH/sem-service
+install_cmd chmod +x $INSTALL_PATH/sem-service
+if [[ $? -eq 0 ]];then
+  echo "sem-service installed"
+else
+    log_install_status 'sem-service'
+fi
+
+install_cmd ln -sf ~/.toolbox/sem-dockerize $INSTALL_PATH/sem-dockerize
+install_cmd chmod +x $INSTALL_PATH/sem-dockerize
+if [[ $? -eq 0 ]];then
+  echo "sem-dockerize installed"
+else
+  log_install_status 'sem-dockerize'
+fi
+
+install_cmd ln -sf ~/.toolbox/sem-service-check-params $INSTALL_PATH/sem-service-check-params
+install_cmd chmod +x $INSTALL_PATH/sem-service-check-params
+if [[ $? -eq 0 ]];then
+  echo "sem-service-check-params installed"
+else
+  log_install_status 'sem-service-check-params'
+fi
+
+install_cmd ln -sf ~/.toolbox/sem-semantic-release $INSTALL_PATH/sem-semantic-release
+install_cmd chmod +x $INSTALL_PATH/sem-semantic-release
+if [[ $? -eq 0 ]];then
+  echo "sem-semantic-release installed"
+else
+  log_install_status 'sem-semantic-release'
+fi
+
+
+echo "Installing the artifacts CLI"
+install_cmd mv ~/.toolbox/artifact $INSTALL_PATH/artifact
+install_cmd chmod +x $INSTALL_PATH/artifact
+if [[ $? -eq 0 ]];then
+  echo "artifacts installed"
+else
+  log_install_status 'artifacts'
+fi
+
+echo "Installing the test results CLI"
+install_cmd mv ~/.toolbox/test-results $INSTALL_PATH/test-results
+install_cmd chmod +x $INSTALL_PATH/test-results
+if [[ $? -eq 0 ]];then
+  echo "test-results installed"
+else
+  log_install_status 'test-results'
+fi
+
+
+if [[ `uname` != "Darwin" ]]; then
+
+  echo "Installing the install-package for linux"
+  install_cmd ln -sf ~/.toolbox/install-package $INSTALL_PATH/install-package
+  install_cmd ln -sf ~/.toolbox/install-package $INSTALL_PATH/install-package.sh
+  install_cmd chmod +x $INSTALL_PATH/install-package
+  if [[ $? -eq 0 ]];then
+    echo "install-package installed"
+  else
+    log_install_status 'install-package'
+  fi
+
+  echo "Installing the SPC CLI"
+  install_cmd mv ~/.toolbox/spc $INSTALL_PATH/spc
+  install_cmd chmod +x $INSTALL_PATH/spc
+  if [[ $? -eq 0 ]];then
+    echo "spc installed"
+  else
+    log_install_status 'spc'
+  fi
+
+  echo "Installing the when CLI"
+  ERLANG_VERSION=$(erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell | tail -n1 | tr -d '"\r')
+  echo "Erlang version: $ERLANG_VERSION"
+  install_cmd mv ~/.toolbox/when_otp_$ERLANG_VERSION $INSTALL_PATH/when
+  install_cmd chmod +x $INSTALL_PATH/when
+  if [[ $? -eq 0 ]];then
+    echo "when installed"
+  else
+    log_install_status 'when'
+  fi
+
+  echo "Installing the enetwork CLI"
+  install_cmd mv ~/.toolbox/enetwork $INSTALL_PATH/enetwork
+  install_cmd chmod +x $INSTALL_PATH/enetwork
+  if [[ $? -eq 0 ]];then
+    echo "enetwork installed"
+  else
+    log_install_status 'enetwork'
+  fi
+
+
+  echo "Starting to collect System Metrics in /tmp/system-metrics"
+
+  # failure won't be propagated to the caller in case of using &
+  sh ~/.toolbox/system-metrics-collector &
+fi
+

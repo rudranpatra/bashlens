@@ -1,0 +1,7 @@
+id: network
+class: network
+severity: medium
+description: Performs an outbound HTTP(S) request
+regex:
+  - "\\b(curl|wget)\\b"
+  - "https?://[^\\s<>]+"

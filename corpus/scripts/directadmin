@@ -1,0 +1,110 @@
+#!/bin/sh
+
+set -e
+
+if [ "$(id -u)" != "0" ]; then
+	echo "This script needs be executed as root" 1>&2
+	exit 1
+fi
+
+case $(uname -m) in
+x86_64)
+	ARCH=amd64
+	;;
+amd64)
+	ARCH=amd64
+	;;
+aarch64)
+	ARCH=arm64
+	;;
+*)
+	echo "CPU architecture '$(uname -m)' is not supported" 1>&2
+	exit 1
+	;;
+esac
+
+if [ "$(uname -s)" != "Linux" ]; then
+	echo "Operating System '$(uname -s)' is not supported" 1>&2
+	exit 1
+fi
+
+DA_CHANNEL=${DA_CHANNEL:="current"}
+DA_OS_SLUG="linux_${ARCH}"
+DA_PATH=/usr/local/directadmin
+
+
+case "${1}" in
+	--help|help|\?|-\?|h)
+		echo ""
+		echo "Usage examples:"
+		echo "	$0"
+		echo "	$0 <license_key>"
+		echo "	DA_CHANNEL=alpha $0 <license_key>"
+		echo ""
+		echo "This script will download the DirectAdmin software package and will run the installation script."
+		echo ""
+		echo "The latest version will be used by default, but a specific build can be selected setting the following environment variables:"
+		echo "  DA_CHANNEL : Download the latest build from a given release channel: alpha, current, stable"
+		echo "   DA_COMMIT : Download a specific build"
+		echo ""
+		echo "The DirectAdmin installation script can be customised by passing additional environment variables. For more details check the documentation page: https://docs.directadmin.com/getting-started/installation/overview.html#running-the-installation-with-predefined-options"
+		echo ""
+		exit 0
+		;;
+esac
+
+if ! command -v dig > /dev/null || ! command -v curl > /dev/null || ! command -v tar > /dev/null; then
+	echo "Installing dependencies..."
+	if [ -e /etc/debian_version ]; then
+	(
+		export DEBIAN_FRONTEND=noninteractive
+		export DEBCONF_NOWARNINGS=yes
+		apt-get --quiet --quiet --yes update || true
+		apt-get --quiet --quiet --yes install curl tar bind9-dnsutils > /dev/null || true
+	)
+	else
+		yum --quiet --assumeyes install curl tar bind-utils || true
+	fi
+fi
+
+if ! command -v curl > /dev/null; then
+	echo "Please make sure 'curl' tool is available on the system and try again" 1>&2
+	exit 1
+fi
+if ! command -v tar > /dev/null; then
+	echo "Please make sure 'tar' tool is available on the system and try again" 1>&2
+	exit 1
+fi
+
+if [ -z "${DA_COMMIT}" ]; then
+	echo "Checking for latest build in '${DA_CHANNEL}' release channel..."
+	DA_COMMIT=$(
+		(
+		dig +short -t txt "${DA_CHANNEL}-version.directadmin.com" 2>/dev/null || \
+		curl --fail --silent "https://dns.google/resolve?name=${DA_CHANNEL}-version.directadmin.com&type=txt" || \
+		curl --fail --silent --header 'Accept: application/dns-json' "https://cloudflare-dns.com/dns-query?name=${DA_CHANNEL}-version.directadmin.com&type=txt"
+		) | sed 's|.*commit=\([0-9a-f]*\).*|\1|'
+	)
+fi
+
+if [ -z "${DA_COMMIT}" ]; then
+	echo "Unable to detect latest build in '${DA_CHANNEL}' release channel. Please make sure there are no problems with internet connectivity, IPv6 may be configured improperly." 1>&2
+	exit 1
+fi
+
+(
+	TMP_DIR=$(mktemp -d)
+	trap 'rm -rf -- "${TMP_DIR}"' EXIT
+
+	FILE="directadmin_${DA_COMMIT}_${DA_OS_SLUG}.tar.gz"
+	echo "Downloading '${FILE}' package..."
+	curl --progress-bar --location --connect-timeout 60 --fail --output "${TMP_DIR}/${FILE}" "https://download.directadmin.com/${FILE}" || \
+	curl --progress-bar --location --connect-timeout 60 --fail --output "${TMP_DIR}/${FILE}" "https://download-alt.directadmin.com/${FILE}"
+
+	echo "Extracting '${FILE}' to '${DA_PATH}' directory..."
+	mkdir -p "${DA_PATH}"
+	tar --extract --gzip --file="${TMP_DIR}/${FILE}" --directory="${DA_PATH}"
+)
+
+chmod 0755 ${DA_PATH}/scripts/setup.sh
+exec ${DA_PATH}/scripts/setup.sh "$@"
