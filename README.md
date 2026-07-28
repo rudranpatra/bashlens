@@ -115,13 +115,33 @@ cargo run --bin bashlens -- --quiet --fail-on obfuscation,unresolvable https://e
 
 Rules and the corpus risk-percentile baseline are **embedded into the binary
 at compile time** (see Architecture), so the compiled binary works from any
-directory — it does not need a checkout of this repo sitting next to it.
+directory — it does not need a checkout of this repo sitting next to it
+(verified: the released binary runs correctly from an empty `/tmp` directory).
 
-**Packaged distribution** (`cargo install`, `npx`, Homebrew): the plumbing
-exists (`.github/workflows/release.yml`, `npm/`, `homebrew/bashlens.rb`) but
-is untested end-to-end until the first tagged release actually runs it — see
-each directory's own notes. `cargo install --path crates/cli` from a clone
-works today.
+**Prebuilt binaries:** [GitHub Releases](https://github.com/rudranpatra/bashlens/releases) -
+built via `.github/workflows/release.yml`, downloaded and run for real as
+part of verifying this release (checksums matched, binary executed
+correctly on a clean machine with no repo checkout).
+
+```bash
+curl -fsSL -o bashlens.tar.gz \
+  https://github.com/rudranpatra/bashlens/releases/download/v0.1.0/bashlens-x86_64-unknown-linux-musl.tar.gz
+tar xzf bashlens.tar.gz && ./bashlens https://bun.sh/install
+```
+
+(swap `x86_64-unknown-linux-musl` for `aarch64-unknown-linux-musl`,
+`x86_64-apple-darwin`, or `aarch64-apple-darwin` as needed.)
+
+**`npx`:** the wrapper in `npm/` downloads the release asset above and was
+tested against it end-to-end (download, extract, execute, including
+`compare`) - not yet published to the npm registry, so `npx bashlens` won't
+resolve until that publish happens.
+
+**Homebrew:** `homebrew/bashlens.rb` has the real checksums from this
+release filled in and its URLs verified reachable, but isn't published to a
+tap yet, so `brew install` from it wasn't run end-to-end.
+
+`cargo install --path crates/cli` from a clone also works.
 
 ## Architecture
 
@@ -136,7 +156,7 @@ rules/        # one directory per detection: rule.yml + query.scm + fixtures/{pa
 corpus/       # install-script corpus, metadata, and aggregate stats
 day0/         # collection (collect.py) and crude analysis (analyze.py) scripts
 npm/          # npx wrapper (downloads the release binary on install)
-homebrew/     # Homebrew formula (needs real checksums after first release)
+homebrew/     # Homebrew formula, real checksums, not yet published to a tap
 ```
 
 Rules and the corpus baseline are compiled into the binary via `include_dir!`/
