@@ -104,6 +104,23 @@ This table is the answer to "define that metric precisely" before the number
 appears in any README or launch post — copy the relevant rows rather than
 re-deriving them.
 
+## Licensing and attribution
+
+Each file in `scripts/` is the verbatim, unmodified install script published
+by that project at the URL recorded in `sources.csv`/`metadata.csv` — it
+remains the property of its original publisher under whatever license or
+terms that publisher applies (most are MIT/Apache/BSD OSS projects; a few
+are install scripts for proprietary CLIs, e.g. cloud-provider tools, where
+the script itself is typically publicly redistributable but the underlying
+product is not open source). This repository does not claim any license or
+ownership over the corpus content, redistributes it unmodified for security
+research and transparency purposes, and attributes every script to its
+source URL. **This is not a legal opinion** — if you plan to redistribute
+this corpus commercially, or a publisher raises an objection, treat it as a
+per-source question and consult someone qualified rather than this note.
+If a publisher objects to inclusion, remove that entry from `sources.csv`
+and `scripts/` on request.
+
 ## Versioning
 
 This is Corpus v1. A future re-run with a materially larger or refreshed

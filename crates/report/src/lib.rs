@@ -65,6 +65,17 @@ impl RiskSummary {
         }
     }
 
+    fn ordinal(n: u8) -> String {
+        let suffix = match (n % 100, n % 10) {
+            (11..=13, _) => "th",
+            (_, 1) => "st",
+            (_, 2) => "nd",
+            (_, 3) => "rd",
+            _ => "th",
+        };
+        format!("{n}{suffix}")
+    }
+
     pub fn render(&self) -> String {
         let mut s = String::new();
         for cr in &self.per_class {
@@ -90,7 +101,12 @@ impl RiskSummary {
         )
         .ok();
         writeln!(s).ok();
-        writeln!(s, "  Risk percentile: {}th", self.overall_percentile).ok();
+        writeln!(
+            s,
+            "  Risk percentile: {}",
+            Self::ordinal(self.overall_percentile)
+        )
+        .ok();
         writeln!(
             s,
             "  Compared against {} installers in the corpus",

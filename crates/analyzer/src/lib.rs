@@ -173,11 +173,15 @@ fn severity_weight(s: &Severity) -> f64 {
 }
 
 fn class_score(findings: &[Finding], class: &BehaviorClass) -> f64 {
-    findings
+    let score: f64 = findings
         .iter()
         .filter(|f| &f.class == class)
         .map(|f| severity_weight(&f.severity) * (f.evidence.len().max(1) as f64))
-        .sum()
+        .sum();
+    // `Sum for f64` folds from -0.0, so an empty (no findings in this class)
+    // sum comes out as negative zero. All real terms here are non-negative,
+    // so `.abs()` only ever normalizes that sign artifact, never a real value.
+    score.abs()
 }
 
 fn has_verification(findings: &[Finding]) -> bool {
