@@ -115,12 +115,21 @@ generated yet**, see Open items below]
 ## Open items before posting
 
 - [ ] `vet-run/vet` maintainer check (10 min, see top of this file)
-- [x] Real terminal screenshots — generated with `termtosvg` from the actual
-      `v0.1.0` release binary (not mocked): `docs/img/rustup.svg` (single
-      scan) and `docs/img/compare.svg` (`bashlens compare` against bun/deno/uv
-      live over the network). Both embedded in the README. For a raster PNG
-      (X/LinkedIn prefer PNG over SVG in some clients), convert locally,
-      e.g. `rsvg-convert docs/img/compare.svg -o compare.png` — not done
-      here since no SVG-to-PNG renderer is available in this environment.
+- [x] Real terminal screenshots — `docs/img/rustup.svg` (single scan) and
+      `docs/img/compare.svg` (`bashlens compare` against bun/deno/uv live
+      over the network), both from the actual `v0.1.0` release binary, both
+      embedded in the README. The first `rustup.svg` attempt was silently
+      blank/incomplete (a real bug in the capture process, not in
+      bashlens) - fixed and every expected string is now individually
+      verified present in the committed file. Full account in `STATUS.md`.
+- [ ] **PNG version, if you need one for X/LinkedIn** (they don't reliably
+      render SVG the way GitHub does). The SVGs are correct, but converting
+      them to PNG *in this environment* renders the bar-chart block
+      characters (█/░) and the ❌ as a hatched pattern / plain X - a
+      font-coverage gap in this sandbox, not in the SVGs. Convert on a
+      machine with normal desktop fonts instead, e.g.:
+      `rsvg-convert docs/img/compare.svg -o compare.png` (or open the SVG
+      in a browser and screenshot it) - either will render correctly
+      outside this environment.
 - [ ] Private review — explicitly skipped by user decision, not done
       (tracked in `STATUS.md`, not re-litigated here)

@@ -121,13 +121,30 @@ genuine capability limits — see "Explicitly not done" — not oversights.
   regenerate of `corpus/stats/day0_stats.json` and `day0_report.md` (not
   just re-reading the existing file) — byte-identical to the committed
   version.
-- **Real screenshots, not mockups:** `docs/img/rustup.svg` and
-  `docs/img/compare.svg`, generated with `termtosvg` by actually running
-  the `v0.1.0` release binary (single-scan and `compare` against
-  bun/deno/uv live over the network), embedded in the README. No PNG
-  conversion was done (no SVG-to-PNG renderer available in this
-  environment) — noted as an open item in `launch.md` for social platforms
-  that prefer raster images.
+- **Real screenshots, not mockups — including a bug found and fixed in
+  generating them.** `docs/img/rustup.svg` and `docs/img/compare.svg`
+  contain real `v0.1.0` release-binary output. The first attempt at
+  `rustup.svg` was silently blank (`termtosvg`'s live-recording capture is
+  non-deterministic in this sandbox - retried and got a 1-line/header-only
+  capture more than once) and, separately, the tool's actual output (26
+  wrapped lines) didn't fit a 20-row terminal, so an early "working"
+  capture only showed the bottom portion (scrolled past the bar chart).
+  Fixed by recording to an asciicast file first (`termtosvg record`),
+  verifying the raw capture actually contains every expected string before
+  rendering, and using a tall enough terminal (30 rows) to fit the whole
+  output with no scrolling. Every one of Network/Privilege/Persistence/
+  Obfuscation/Verification/Risk percentile/Unresolvable is now
+  independently `grep`-confirmed present in the committed SVG - not just
+  "the command ran successfully."
+  PNG conversion was attempted via this sandbox's system `Rsvg`/`GdkPixbuf`
+  bindings (no `rsvg-convert`/`inkscape`/network install available) and
+  works for text, but the bar-chart block characters (█/░) and the ❌
+  emoji render as a hatched pattern / plain X - a font-glyph-coverage gap
+  in this headless environment, not in the SVG data itself (confirmed:
+  those characters are present in the file; a real browser or GitHub's
+  renderer has full font fallback and should render them correctly). No
+  PNG was committed as a result - see `launch.md` for what that means for
+  platforms that need a raster image.
 - **Repo hygiene added:** `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`,
   `.github/dependabot.yml` (cargo/npm/github-actions ecosystems). Skipped
   `CODE_OF_CONDUCT.md` — optional per the review this responds to, and
