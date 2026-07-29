@@ -14,9 +14,18 @@ resolve.
 
 ## Real output, not a mockup
 
-This is the actual output of this repository's own binary, run against
-`rustup`'s real install script, from the corpus committed in this repo
-(`corpus/scripts/rustup`):
+This is the actual `v0.1.0` release binary, run against `rustup`'s real
+install script (`corpus/scripts/rustup` in this repo) - not a mockup:
+
+<img src="docs/img/rustup.svg" alt="bashlens run against rustup's real install script" width="700">
+
+Same binary, comparing three real installers live over the network
+(`bashlens compare https://bun.sh/install https://deno.land/install.sh
+https://astral.sh/uv/install.sh`):
+
+<img src="docs/img/compare.svg" alt="bashlens compare against bun, deno, and uv" width="700">
+
+Text form of the first example, for copy-paste and search:
 
 ```
 $ bashlens corpus/scripts/rustup
