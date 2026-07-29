@@ -164,10 +164,12 @@ Stated plainly, not hedged:
   name `vet`, no safe/unsafe language" rules. Not posted anywhere — that's
   a user action.
 - **GitHub repo settings requiring the owner's own auth** (Discussions,
-  Dependabot alerts toggle, repository social-preview image upload): not
-  something this session can do without repo-admin credentials. The
-  `dependabot.yml` config file is in place; the *setting* that enables
-  Dependabot alerts on the repo still needs to be flipped in GitHub's UI.
+  repository social-preview image upload): not something this session can
+  do without repo-admin credentials. (Dependabot itself needed no separate
+  toggle - adding `.github/dependabot.yml` was enough; it activated
+  immediately and opened 5 real version-bump PRs within minutes, all
+  passing CI. Those PRs are unreviewed and unmerged - that's a decision
+  for the repo owner, not something to auto-merge silently.)
 - **`brew install` / npm registry publish** — see Packaging above.
 - **macOS and aarch64-Linux binary execution** — see Release above; this
   environment has neither platform.
