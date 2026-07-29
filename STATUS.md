@@ -1,6 +1,6 @@
 # Status — bashlens v0.1.0
 
-**Last verified:** 2026-07-28. **HEAD:** `705654f`. **Tag:** `v0.1.0`
+**Last verified:** 2026-07-28. **HEAD:** `09ecdd0`. **Tag:** `v0.1.0`
 (GitHub Actions release run succeeded on the second attempt — see
 "What actually failed" below).
 
