@@ -9,6 +9,6 @@ serde_yaml = "0.9"
 regex = "1.10"
 anyhow = "1.0"
 bashlens-parser = { path = "../parser" }
-tree-sitter = "0.26"
+tree-sitter = "0.27"
 streaming-iterator = "0.1"
 include_dir = "0.7"

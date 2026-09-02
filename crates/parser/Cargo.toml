@@ -4,6 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-tree-sitter = "0.26"
+tree-sitter = "0.27"
 tree-sitter-bash = "0.25"
 anyhow = "1.0"
